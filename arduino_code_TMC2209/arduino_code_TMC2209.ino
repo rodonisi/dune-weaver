@@ -71,38 +71,9 @@ void loop()
         String input = Serial.readStringUntil('\n');
 
         // Ignore invalid messages
-        if (input != "HOME" && input != "RESET_THETA" && !input.startsWith("SET_SPEED") && !input.endsWith(";"))
+        if (input != "HOME" && input != "RESET_THETA" && !input.endsWith(";"))
         {
             Serial.println("IGNORED");
-            return;
-        }
-
-
-        if (input.startsWith("SET_SPEED"))
-        {
-            // Parse and set the speed
-            int spaceIndex = input.indexOf(' ');
-            if (spaceIndex != -1)
-            {
-                String speedStr = input.substring(spaceIndex + 1);
-                float speed = speedStr.toFloat();
-
-                if (speed > 0) // Ensure valid speed
-                {
-                    rotStepper.setMaxSpeed(speed);
-                    inOutStepper.setMaxSpeed(speed);
-                    Serial.println("SPEED_SET");
-                    Serial.println("R");
-                }
-                else
-                {
-                    Serial.println("INVALID_SPEED");
-                }
-            }
-            else
-            {
-                Serial.println("INVALID_COMMAND");
-            }
             return;
         }
 
@@ -170,8 +141,8 @@ void loop()
                 
                 currentTheta = buffer[0][0];
                 totalRevolutions = 0;
-                isFirstCoordinates = false; // Reset the flag after the first movement
                 movePolar(buffer[0][0], buffer[0][1]);
+                isFirstCoordinates = false; // Reset the flag after the first movement
             }
               else
               {
@@ -227,7 +198,9 @@ void movePolar(float theta, float rho)
     totalRevolutions += (theta - currentTheta) / (2.0 * M_PI);
 
     // Apply the offset to the inout axis
-    inOutSteps -= offsetSteps;
+    if (!isFirstCoordinates) {
+        inOutSteps -= offsetSteps;
+    }
 
     // Define target positions for both motors
     long targetPositions[2];
