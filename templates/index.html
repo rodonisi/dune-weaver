@@ -146,6 +146,21 @@
                             <option value="clear_sideway">Clear Sideway</option>
                             <option value="random">Random</option>
                         </select>
+                        
+                        <!-- New Parameters -->
+                        <div class="run-options">
+                            <label>Run Mode:</label>
+                            <label>
+                                <input type="radio" name="run_mode" value="single" checked> Single Run
+                            </label>
+                            <label>
+                                <input type="radio" name="run_mode" value="indefinite"> Indefinite Run
+                            </label>
+                            
+                            <label>
+                                <input type="checkbox" id="shuffle_playlist"> Shuffle Playlist
+                            </label>
+                        </div>
                     </div>
                     
                     <!-- Playlists List -->
@@ -553,6 +568,8 @@
         // Initial load of serial ports and Theta-Rho files
         loadSerialPorts();
         loadThetaRhoFiles();
+
+        document.getElementById('run_button').onclick = runThetaRho;
         
         document.querySelectorAll('.modeSelector').forEach((radio) => {
             radio.addEventListener('change', function () {
@@ -640,6 +657,8 @@
             // Get the parameters from the UI
             const pauseTimeInput = document.getElementById('pause_time').value;
             const clearPatternSelect = document.getElementById('clear_pattern').value;
+            const runMode = document.querySelector('input[name="run_mode"]:checked').value;
+            const shuffle = document.getElementById('shuffle_playlist').checked;
 
             // Validate pause time
             const pauseTime = parseFloat(pauseTimeInput);
@@ -654,7 +673,7 @@
                 clearPattern = null;
             }
 
-            logMessage(`Running playlist: ${playlistName} with pause_time=${pauseTime}, clear_pattern=${clearPattern || "None"}`);
+            logMessage(`Running playlist: ${playlistName} with pause_time=${pauseTime}, clear_pattern=${clearPattern || "None"}, run_mode=${runMode}, shuffle=${shuffle}`);
 
             try {
                 const response = await fetch('/run_playlist', {
@@ -664,7 +683,9 @@
                         playlist_name: playlistName,
                         pause_time: pauseTime,
                         clear_between_files: clearPattern !== null,
-                        clear_pattern: clearPattern
+                        clear_pattern: clearPattern,
+                        run_mode: runMode, // 'single' or 'indefinite'
+                        shuffle: shuffle      // true or false
                     })
                 });
 
