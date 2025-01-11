@@ -10,14 +10,15 @@
 #define ROT_PIN3 26
 #define ROT_PIN4 27
 
-#define INOUT_PIN1 16
-#define INOUT_PIN2 17
+#define INOUT_PIN1 22
+#define INOUT_PIN2 23
 #define INOUT_PIN3 18
 #define INOUT_PIN4 19
 
 
 #define rot_total_steps 12800
-#define inOut_total_steps 4642
+#define inOut_total_steps 4042
+// #define inOut_total_steps 4642
 // #define inOut_total_steps 4660
 const double gearRatio = 100.0f / 16.0f;
 
