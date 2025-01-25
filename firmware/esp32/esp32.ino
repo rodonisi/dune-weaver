@@ -10,10 +10,10 @@
 #define ROT_PIN3 12
 #define ROT_PIN4 14
 
-#define INOUT_PIN1 22
-#define INOUT_PIN2 23
-#define INOUT_PIN3 18
-#define INOUT_PIN4 19
+#define INOUT_PIN1 19
+#define INOUT_PIN2 18
+#define INOUT_PIN3 17
+#define INOUT_PIN4 22
 
 
 #define rot_total_steps 12800
