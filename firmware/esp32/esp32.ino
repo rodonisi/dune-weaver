@@ -12,7 +12,7 @@
 
 #define INOUT_PIN1 19
 #define INOUT_PIN2 18
-#define INOUT_PIN3 17
+#define INOUT_PIN3 23
 #define INOUT_PIN4 22
 
 
