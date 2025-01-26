@@ -46,7 +46,7 @@ double maxAcceleration = 5000;
 double subSteps = 1;
 
 // FIRMWARE VERSION
-const char* firmwareVersion = "1.4.0";
+const char* firmwareVersion = "1.4.4";
 const char* motorType = "esp32";
 
 int modulus(int x, int y) {
@@ -76,7 +76,7 @@ void getVersion()
 {
     Serial.println("Table: Mini Dune Weaver");
     Serial.println("Drivers: ULN2003");
-    Serial.println("Version: 1.4.0");
+    Serial.println("Version: 1.4.4");
 }
 
 void loop()
