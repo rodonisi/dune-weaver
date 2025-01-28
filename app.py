@@ -305,6 +305,9 @@ def wait_for_start_time(schedule_hours):
         else:
             time.sleep(30)  # Wait for 30 seconds before checking again
 
+# Global variable to track the schedule checker thread
+schedule_checker_thread = None
+
 # Function to check schedule based on start and end time
 def schedule_checker(schedule_hours):
     """
@@ -313,7 +316,7 @@ def schedule_checker(schedule_hours):
     Parameters:
     - schedule_hours (tuple): (start_time, end_time) as `datetime.time` objects.
     """
-    global pause_requested
+    global pause_requested, schedule_checker_thread
     if not schedule_hours:
         return  # No scheduling restriction
 
@@ -332,8 +335,10 @@ def schedule_checker(schedule_hours):
             print("Pausing execution: Outside schedule.")
         pause_requested = True  # Pause execution
 
-        # Start a background thread to periodically check for start time
-        threading.Thread(target=wait_for_start_time, args=(schedule_hours,), daemon=True).start()
+        # Start a background thread to periodically check for start time if not already running
+        if schedule_checker_thread is None or not schedule_checker_thread.is_alive():
+            schedule_checker_thread = threading.Thread(target=wait_for_start_time, args=(schedule_hours,), daemon=True)
+            schedule_checker_thread.start()
 
 def run_theta_rho_file(file_path, schedule_hours=None):
     """Run a theta-rho file by sending data in optimized batches with tqdm ETA tracking."""
