@@ -305,7 +305,7 @@ def wait_for_start_time(schedule_hours):
         else:
             time.sleep(30)  # Wait for 30 seconds before checking again
 
-# Global variable to track the schedule checker thread
+# Global variable to rack the schedule checker thread
 schedule_checker_thread = None
 
 # Function to check schedule based on start and end time
@@ -328,6 +328,7 @@ def schedule_checker(schedule_hours):
         if pause_requested:
             print("Starting execution: Within schedule.")
         pause_requested = False  # Resume execution
+        schedule_checker_thread = None  # Reset the thread tracker
         with pause_condition:
             pause_condition.notify_all()
     else:
