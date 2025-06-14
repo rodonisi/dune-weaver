@@ -891,8 +891,8 @@ async def run_theta_rho_file(file_path, is_playlist=False):
             progress_update_task = None
             
 
-async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False):
-    """Run multiple .thr files in sequence with options."""
+async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False, start_time=None, end_time=None):
+    """Run multiple .thr files in sequence with options, including optional time-based scheduling."""
     state.stop_requested = False
 
     # Reset LED idle timeout activity time when playlist starts
