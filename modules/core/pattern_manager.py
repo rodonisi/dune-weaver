@@ -476,7 +476,7 @@ def move_polar(theta, rho):
     
     if state.table_type == 'dune_weaver_mini':
         x_scaling_factor = 2
-        y_scaling_factor = 3.7
+        y_scaling_factor = 4.2
     else:
         x_scaling_factor = 2
         y_scaling_factor = 5
