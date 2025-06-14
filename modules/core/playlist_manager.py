@@ -3,6 +3,7 @@ import os
 import threading
 import logging
 import asyncio
+from datetime import datetime, time
 from modules.core import pattern_manager
 from modules.core.state import state
 
@@ -85,8 +86,8 @@ def add_to_playlist(playlist_name, pattern):
     logger.info(f"Added pattern '{pattern}' to playlist '{playlist_name}'")
     return True
 
-async def run_playlist(playlist_name, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False):
-    """Run a playlist with the given options."""
+async def run_playlist(playlist_name, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False, start_time=None, end_time=None):
+    """Run a playlist with the given options, including optional time-based scheduling."""
     if pattern_manager.pattern_lock.locked():
         logger.warning("Cannot start playlist: Another pattern is already running")
         return False, "Cannot start playlist: Another pattern is already running"
@@ -104,7 +105,12 @@ async def run_playlist(playlist_name, pause_time=0, clear_pattern=None, run_mode
         return False, "Playlist is empty"
 
     try:
-        logger.info(f"Starting playlist '{playlist_name}' with mode={run_mode}, shuffle={shuffle}")
+        # Log scheduling information
+        if start_time and end_time:
+            logger.info(f"Starting scheduled playlist '{playlist_name}' (active {start_time}-{end_time}) with mode={run_mode}, shuffle={shuffle}")
+        else:
+            logger.info(f"Starting playlist '{playlist_name}' with mode={run_mode}, shuffle={shuffle}")
+        
         state.current_playlist = file_paths
         state.current_playlist_name = playlist_name
         asyncio.create_task(
@@ -114,9 +120,64 @@ async def run_playlist(playlist_name, pause_time=0, clear_pattern=None, run_mode
                 clear_pattern=clear_pattern,
                 run_mode=run_mode,
                 shuffle=shuffle,
+                start_time=start_time,
+                end_time=end_time,
             )
         )
         return True, f"Playlist '{playlist_name}' is now running."
     except Exception as e:
         logger.error(f"Failed to run playlist '{playlist_name}': {str(e)}")
         return False, str(e)
+
+def parse_time_string(time_str):
+    """Parse time string in HH:MM format to datetime.time object."""
+    if not time_str:
+        return None
+    try:
+        hour, minute = map(int, time_str.split(':'))
+        return time(hour, minute)
+    except ValueError:
+        logger.error(f"Invalid time format: {time_str}. Expected HH:MM")
+        return None
+
+def is_within_schedule(start_time_str, end_time_str):
+    """Check if current time is within the specified schedule."""
+    if not start_time_str or not end_time_str:
+        # No schedule specified, always allow
+        return True
+    
+    start_time = parse_time_string(start_time_str)
+    end_time = parse_time_string(end_time_str)
+    
+    if not start_time or not end_time:
+        logger.warning("Invalid time format in schedule, allowing execution")
+        return True
+    
+    current_time = datetime.now().time()
+    
+    # Handle schedules that span midnight
+    if start_time <= end_time:
+        # Same day schedule (e.g., 09:00 to 17:00)
+        return start_time <= current_time <= end_time
+    else:
+        # Overnight schedule (e.g., 22:00 to 06:00)
+        return current_time >= start_time or current_time <= end_time
+
+async def wait_for_schedule(start_time_str, end_time_str):
+    """Wait until we're within the scheduled time range."""
+    if not start_time_str or not end_time_str:
+        return  # No schedule, don't wait
+    
+    start_time = parse_time_string(start_time_str)
+    end_time = parse_time_string(end_time_str)
+    
+    if not start_time or not end_time:
+        return  # Invalid schedule, don't wait
+    
+    while not is_within_schedule(start_time_str, end_time_str):
+        if state.stop_requested:
+            return  # Stop waiting if execution was cancelled
+        
+        current_time = datetime.now().time()
+        logger.info(f"Outside scheduled hours ({start_time_str}-{end_time_str}). Current time: {current_time.strftime('%H:%M')}. Waiting...")
+        await asyncio.sleep(60)  # Check every minute

@@ -515,22 +515,29 @@ async def add_to_playlist(request: AddToPlaylistRequest):
     return {"success": True}
 
 @app.post("/run_playlist")
-async def run_playlist_endpoint(request: PlaylistRequest):
-    """Run a playlist with specified parameters."""
+async def run_playlist_endpoint(request: PlaylistRunRequest):
+    """Run a playlist with specified parameters, including optional scheduling."""
     try:
         if not os.path.exists(playlist_manager.PLAYLISTS_FILE):
             raise HTTPException(status_code=404, detail=f"Playlist '{request.playlist_name}' not found")
 
-        # Start the playlist execution
+        # Start the playlist execution with scheduling parameters
         asyncio.create_task(playlist_manager.run_playlist(
             request.playlist_name,
             pause_time=request.pause_time,
             clear_pattern=request.clear_pattern,
             run_mode=request.run_mode,
-            shuffle=request.shuffle
+            shuffle=request.shuffle,
+            start_time=request.start_time,
+            end_time=request.end_time
         ))
 
-        return {"message": f"Started playlist: {request.playlist_name}"}
+        # Create response message
+        message = f"Started playlist: {request.playlist_name}"
+        if request.start_time and request.end_time:
+            message += f" (scheduled for {request.start_time}-{request.end_time})"
+        
+        return {"message": message}
     except Exception as e:
         logger.error(f"Error running playlist: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -596,6 +603,34 @@ async def skip_pattern():
         raise HTTPException(status_code=400, detail="No playlist is currently running")
     state.skip_requested = True
     return {"success": True}
+
+@app.get("/schedule_status")
+async def get_schedule_status():
+    """Get current schedule status and information."""
+    # This would be extended to show current scheduled playlists if we add persistent scheduling
+    current_time = datetime.now().time()
+    return {
+        "current_time": current_time.strftime("%H:%M"),
+        "scheduling_available": True
+    }
+
+@app.post("/test_schedule")
+async def test_schedule(start_time: str, end_time: str):
+    """Test if current time is within a given schedule."""
+    try:
+        from modules.core.playlist_manager import is_within_schedule
+        within_schedule = is_within_schedule(start_time, end_time)
+        current_time = datetime.now().time()
+        
+        return {
+            "current_time": current_time.strftime("%H:%M"),
+            "start_time": start_time,
+            "end_time": end_time,
+            "within_schedule": within_schedule
+        }
+    except Exception as e:
+        logger.error(f"Error testing schedule: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully but forcefully."""

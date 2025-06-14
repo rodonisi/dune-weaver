@@ -316,9 +316,24 @@
                             <option value="clear_from_out">Clear From Perimeter</option>
                             <option value="clear_from_out_Ultra">Clear From Perimeter Ultra</option>
                             <option value="clear_sideway">Clear Sideways</option>
-                            <option value="random">Random</option>
-                        </select>
+                            <option value="random">Random</option>                        </select>
                     </div>
+                </div>
+                <h3>Schedule (Optional):</h3>
+                <div class="control-group">
+                    <div class="item column">
+                        <label for="start_time">Start Time:</label>
+                        <input type="time" id="start_time" placeholder="HH:MM">
+                        <small>Leave empty for no scheduling</small>
+                    </div>
+                    <div class="item column">
+                        <label for="end_time">End Time:</label>
+                        <input type="time" id="end_time" placeholder="HH:MM">
+                        <small>Leave empty for no scheduling</small>
+                    </div>
+                </div>
+                <div class="schedule-info">
+                    <small><i class="fa-solid fa-info-circle"></i> When scheduling is enabled, the playlist will only run during the specified time range. Use 24-hour format (e.g., 22:00 to 06:00 for overnight).</small>
                 </div>
             </div>
         </section>

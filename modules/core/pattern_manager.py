@@ -314,8 +314,8 @@ async def run_theta_rho_file(file_path, is_playlist=False):
             progress_update_task = None
             
 
-async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False):
-    """Run multiple .thr files in sequence with options."""
+async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_mode="single", shuffle=False, start_time=None, end_time=None):
+    """Run multiple .thr files in sequence with options, including optional time-based scheduling."""
     state.stop_requested = False
     
     # Set initial playlist state
@@ -324,20 +324,24 @@ async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_
     # Start progress update task for the playlist
     global progress_update_task
     if not progress_update_task:
-        progress_update_task = asyncio.create_task(broadcast_progress())
-    
-    
-    if shuffle:
-        random.shuffle(file_paths)
-        logger.info("Playlist shuffled")
-
-
+        progress_update_task = asyncio.create_task(broadcast_progress())    
     if shuffle:
         random.shuffle(file_paths)
         logger.info("Playlist shuffled")
 
     try:
         while True:
+            # Check if we have scheduling constraints
+            if start_time and end_time:
+                # Wait for scheduled time if needed
+                from modules.core.playlist_manager import wait_for_schedule, is_within_schedule
+                await wait_for_schedule(start_time, end_time)
+                
+                # Check if we're still supposed to be running
+                if state.stop_requested:
+                    logger.info("Execution stopped while waiting for schedule")
+                    return
+            
             # Construct the complete pattern sequence
             pattern_sequence = []
             for path in file_paths:
@@ -367,6 +371,18 @@ async def run_theta_rho_files(file_paths, pause_time=0, clear_pattern=None, run_
                 if state.stop_requested:
                     logger.info("Execution stopped")
                     return
+
+                # Check scheduling before each pattern (if scheduling is enabled)
+                if start_time and end_time:
+                    from modules.core.playlist_manager import is_within_schedule
+                    if not is_within_schedule(start_time, end_time):
+                        logger.info("Outside scheduled hours, pausing playlist execution")
+                        await wait_for_schedule(start_time, end_time)
+                        
+                        # Check if we should still be running after waiting
+                        if state.stop_requested:
+                            logger.info("Execution stopped while waiting for schedule")
+                            return
 
                 # Update state for main patterns only
                 logger.info(f"Running pattern {file_path}")
