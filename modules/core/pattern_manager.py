@@ -335,7 +335,7 @@ class MotionControlThread:
         # This is the original sync logic but running in dedicated thread
         if state.table_type == 'dune_weaver_mini':
             x_scaling_factor = 2
-            y_scaling_factor = 3.7
+            y_scaling_factor = 4.0
         else:
             x_scaling_factor = 2
             y_scaling_factor = 5
