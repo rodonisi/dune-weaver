@@ -35,7 +35,7 @@ if [[ "$REAL_HOME" == "~$REAL_USER" ]]; then
     REAL_HOME="$(grep "^$REAL_USER:" /etc/passwd | cut -d: -f6)"
 fi
 INSTALL_DIR="$REAL_HOME/dune-weaver"
-REPO_URL="https://github.com/tuanchris/dune-weaver"
+REPO_URL="https://github.com/rodonisi/dune-weaver"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
